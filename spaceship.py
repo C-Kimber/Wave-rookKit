@@ -1,5 +1,7 @@
 import pygame
 from bullet import Bullet
+from bullet import Missile
+
 
 class Spaceship():
 
@@ -47,6 +49,7 @@ class Spaceship():
         return
 
     def moveRight(self, dx, upper_limit):
+
         if self.alive == True:
             self.x += dx
             # check the wall
@@ -83,7 +86,11 @@ class Spaceship():
     def fire(self,width,height,color):
         if self.alive == True:
             return Bullet(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
-    
+
+
+    def launch(self,width,height,color):
+        if self.alive== True:
+            return Missile(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
     def draw(self, surface):
         if self.alive == True:
             rect = pygame.Rect( self.x, self.y, self.width, self.height )

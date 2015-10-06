@@ -23,19 +23,32 @@ class SpaceshipData:
         self.spaceship_y = self.spaceship.spaceshipPosition()[1]
 
         self.bullets = []
-        self.bullet_width = 10
+        self.bullet_width = 5
         self.bullet_height = 5
         self.bullet_color = (255,255,255)
+
+        self.missiles = []
+        self.misslen = 0
+        self.missile_width = 15
+        self.missile_height = 5
+        self.missile_color = (55,44,44)
+
+        self.badBullets = []
+        self.badBullet_width = 5
+        self.badBullet_height = 5
+        self.badBullet_color = (0,255,255)
+
         self.baddies = []
         self.baddie_width = 20
         self.baddie_height = 20
-        self.baddie_color = (255,0,0)
+        self.baddie_color = (0,155,0)
         self.score = 0
 
         self.wave1 = True
         self.w1 = [1,1,2,2,1,2,1,1,0]
 
         self.delay = 0
+        self.shootDelay = 0
 
         self.a = -1
         return
@@ -51,9 +64,33 @@ class SpaceshipData:
         if pygame.K_DOWN in keys or pygame.K_s in keys:
             self.spaceship.moveDown(self.spaceship_speed,self.height)
 
-        if pygame.K_SPACE in newkeys or 1 in newbuttons:
+        """if pygame.K_SPACE in newkeys or 1 in newbuttons:
             self.bullets.append(self.spaceship.fire(self.bullet_width,self.bullet_height,self.bullet_color))
+            self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+            if self.misslen ==0:
+                self.misslen=1
+            else:
+                self.misslen = 0"""
 
+        self.shootDelay += 1
+
+        if self.shootDelay > 30:
+            self.shootDelay = 0
+
+
+        if pygame.K_SPACE in keys or 1 in buttons:
+
+            if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
+                self.bullets.append(self.spaceship.fire(self.bullet_width,self.bullet_height,self.bullet_color))
+            if self.shootDelay == 15:
+                if self.misslen ==0:
+                    self.misslen=1
+                else:
+                    self.misslen = 0
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+            if self.shootDelay == 30 :
+
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
 
         self.delay += 1
         if self.delay >= 120:
@@ -79,7 +116,7 @@ class SpaceshipData:
 
                     self.a+=1
                     i = self.w1[self.a]
-                    print self.a
+
                     #print i
 
                     if i == 1:
@@ -97,6 +134,7 @@ class SpaceshipData:
                         self.addStrongBaddie(300)
                         self.addBaddie(400)
                         self.addStrongBaddie(500)
+
                     elif i == 0:
                         self.wave1 = False
 
@@ -109,18 +147,33 @@ class SpaceshipData:
             bullet.moveBullet()
             bullet.checkBackWall(self.width)
 
+        for bbullet in self.badBullets:
+            bbullet.moveBullet()
+            bbullet.checkBackWall(0)
+
 
         self.spaceship_y = self.spaceship.spaceshipPosition()[1]
         for baddie in self.baddies:
+
             baddie.tick(0,0,self.height, self.spaceship_y)
+
 
             if not baddie.alive:
                 continue
             x,y,w,h = baddie.getDimensions()
+            n = y
             self.spaceship.checkHit(x,y,w,h)
+
             if self.spaceship.getHit():
                 baddie.decreaseHitPoints(99)
                 self.spaceship.hit = False
+            if baddie.behavior == 3:
+                if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
+                    self.badBullets.append(baddie.fire(self.bullet_width,self.bullet_height,self.bullet_color))
+        for missile in self.missiles:
+
+
+            missile.moveMissile(self.misslen)
 
 
 
@@ -133,53 +186,78 @@ class SpaceshipData:
                     continue
                 x,y,w,h = baddie.getDimensions()
                 bullet.checkHitBaddie(x,y,w,h)
+
                 if bullet.getHit():
                     bullet.setAlive(False)
                     baddie.decreaseHitPoints(1)
                     bullet.hit = False
                     self.score += 15
 
+        for missile in self.missiles:
+            if not missile.alive:
+                continue
+            for baddie in self.baddies:
+                if not baddie.alive:
+                    continue
+                x,y,w,h = baddie.getDimensions()
+                missile.checkHitBaddie(x,y,w,h)
+                if missile.getHit():
+                    missile.setAlive(False)
+                    baddie.decreaseHitPoints(3)
+                    missile.hit = False
+                    self.score += 15
 
         live_bullets = []
         live_baddies = []
+        live_missiles = []
+        live_badBullets = []
+        live_projectiles =[]
         for bullet in self.bullets:
             if bullet.alive:
                 live_bullets.append(bullet)
+        for bbullet in self.badBullets:
+            if bbullet.alive:
+                live_bullets.append(bbullet)
         for baddie in self.baddies:
             if baddie.alive:
                 live_baddies.append(baddie)
+        for missile in self.missiles:
+            if missile.alive:
+                live_missiles.append(missile)
 
+        self.badBullets = live_badBullets
         self.bullets = live_bullets
         self.baddies = live_baddies
+        self.missiles = live_missiles
 
         return
 
     def addRandBaddie(self):
-        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, random.randint(0,(self.height-self.baddie_height)), self.baddie_color, 3 )
+        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, random.randint(0,(self.height-self.baddie_height)), self.baddie_color, 3, 0)
         self.baddies.append( new_baddie )
                    
         return
 
     def addRandStrongBaddie(self):
-        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, random.randint(0, (self.height-self.baddie_height)), (155,0,0), 2)
+        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, random.randint(0, (self.height-self.baddie_height)), (155,0,0), 2, 1)
         new_baddie.setHitPoints(2)
         self.baddies.append(new_baddie)
         return
 
     def addBaddie(self, height):
-        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, height, self.baddie_color, 3 )
+        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, height, self.baddie_color, 3, 0 )
         self.baddies.append( new_baddie )
 
         return
 
     def addStrongBaddie(self, height):
-        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2)
+        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2, 0)
         new_baddie.setHitPoints(2)
         self.baddies.append(new_baddie)
         return
 
     def addBigBaddie(self):
-        new_baddie = Baddie(self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1)
+        new_baddie = Baddie(self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1, 2)
         new_baddie.setHitPoints(15)
         self.baddies.append(new_baddie)
         return
@@ -211,6 +289,10 @@ class SpaceshipData:
 
         for bullet in self.bullets:
             bullet.draw(surface)
+        for missile in self.missiles:
+            missile.draw(surface)
+        for bbullet in self.badBullets:
+            bbullet.draw(surface)
         for baddie in self.baddies:
             baddie.draw(surface)
         return
