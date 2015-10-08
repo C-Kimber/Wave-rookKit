@@ -61,11 +61,17 @@ class Baddie():
             self.new_y = self.y + self.vel
 
         elif self.behavior == 1 :
+
+            if self.x <= 400:
+
+                self.new_x = 400
+
             if self.y >= spaceship_position:
-                self.vel -= 1
+                self.vel -= .5
             else:
-                self.vel += 1
+                self.vel += .5
             self.new_y = self.y + self.vel
+
 
         elif self.behavior == 3:
             if self.y >= spaceship_position:
@@ -77,6 +83,8 @@ class Baddie():
                 self.fire(20,20,(255,255,255))
         else:
             self.new_y = self.y + random.randint(-1,1)
+
+
         if self.new_x < back_wall:
             self.setAlive(False)
         else:

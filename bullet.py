@@ -13,7 +13,7 @@ class Bullet():
         self.hit    = False
         return
 
-    def checkHitBaddie(self,x,y,w,h):
+    def checkHit(self,x,y,w,h):
         if self.hitRectangle(x, y, w, h):
             self.setAlive(False)
             self.hit = True

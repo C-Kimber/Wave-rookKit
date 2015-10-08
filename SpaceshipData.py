@@ -143,6 +143,7 @@ class SpaceshipData:
 
         self.spaceship.tick()
 
+
         for bullet in self.bullets:
             bullet.moveBullet()
             bullet.checkBackWall(self.width)
@@ -150,6 +151,13 @@ class SpaceshipData:
         for bbullet in self.badBullets:
             bbullet.moveBullet()
             bbullet.checkBackWall(0)
+            if not bbullet.alive:
+                continue
+            x,y,h,w = bbullet.getDimenstions()
+            self.spaceship.checkHit(x,y,h,w)
+            if self.spaceship.hit == True:
+                self.spaceship.hit = False
+                self.spaceship_health -= 1
 
 
         self.spaceship_y = self.spaceship.spaceshipPosition()[1]
@@ -167,7 +175,7 @@ class SpaceshipData:
             if self.spaceship.getHit():
                 baddie.decreaseHitPoints(99)
                 self.spaceship.hit = False
-            if baddie.behavior == 3:
+            if baddie.behavior == 3 or baddie.behavior == 1:
                 if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
                     self.badBullets.append(baddie.fire(self.bullet_width,self.bullet_height,self.bullet_color))
         for missile in self.missiles:
@@ -185,7 +193,7 @@ class SpaceshipData:
                 if not baddie.alive:
                     continue
                 x,y,w,h = baddie.getDimensions()
-                bullet.checkHitBaddie(x,y,w,h)
+                bullet.checkHit(x,y,w,h)
 
                 if bullet.getHit():
                     bullet.setAlive(False)
@@ -251,13 +259,13 @@ class SpaceshipData:
         return
 
     def addStrongBaddie(self, height):
-        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2, 0)
+        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2, 1)
         new_baddie.setHitPoints(2)
         self.baddies.append(new_baddie)
         return
 
     def addBigBaddie(self):
-        new_baddie = Baddie(self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1, 2)
+        new_baddie = Baddie(self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1, 3)
         new_baddie.setHitPoints(15)
         self.baddies.append(new_baddie)
         return
