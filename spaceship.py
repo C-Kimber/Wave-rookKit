@@ -1,6 +1,7 @@
 import pygame
 from bullet import Bullet
 from bullet import Missile
+from bullet import Laser
 
 
 class Spaceship():
@@ -14,6 +15,11 @@ class Spaceship():
         self.health = health
         self.alive = True
         self.hit = False
+        self.invinsible = False
+        self.cannonlvl = 0
+        self.bullet_up = 1
+        self.missile_up = 0
+        self.laser_up = 0
         return
 
 
@@ -32,9 +38,13 @@ class Spaceship():
         self.isAlive()
 
     def checkHit(self,x,y,w,h):
+        if self.invinsible != True:
+            if self.alive == True:
+                if self.hitRectangle(x, y, w, h):
+                    self.hit = True
+    def checkHitFriendly(self, x,y,w,h):
         if self.alive == True:
             if self.hitRectangle(x, y, w, h):
-                self.health -= 1
                 self.hit = True
 
     def getHit(self):
@@ -91,9 +101,18 @@ class Spaceship():
     def launch(self,width,height,color):
         if self.alive== True:
             return Missile(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
+
+    def beam(self,width,height,color):
+        if self.alive== True:
+            return Laser(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
+
     def draw(self, surface):
         if self.alive == True:
             rect = pygame.Rect( self.x, self.y, self.width, self.height )
-            pygame.draw.rect(surface, self.color, rect)
+            if self.invinsible == True:
+                pygame.draw.rect(surface, (255,55,55), rect)
+            else:
+                pygame.draw.rect(surface, self.color, rect)
+
         return
         

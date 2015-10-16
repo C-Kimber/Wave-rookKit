@@ -1,9 +1,10 @@
 import pygame
 import random
-from bad_bullet import BadBullet
+from bullet import BadBullet
+from bullet import BadMissile
+from powerups import *
 
 class Baddie():
-
     def __init__(self,width,height,x,y,color, speed, behavior):
         self.width  = width
         self.height = height
@@ -14,10 +15,12 @@ class Baddie():
         self.speed  = speed
         self.color  = color
         self.alive  = True
+        self.hit = False
         self.hit_points = 1
         self.vel = 0
         self.behavior = behavior
         self.shootDelay = 0
+        self.hasCoin = True
         return
 
 
@@ -30,7 +33,10 @@ class Baddie():
 
     def fire(self, width, height, color):
         if self.alive== True:
-            return BadBullet(width,height,(self.x - self.width) , (self.y - (self.height /2) - (height/2)),color)
+            return BadBullet(width,height,(self.x - self.width) , (self.y + self.height),color)
+
+    def package(self, width, height, color):
+        return Coin(width,height,(self.x - self.width) , (self.y - (self.height /2) - (height/2)),color)
 
     def getDimensions(self):
         return self.x,self.y,self.width,self.height
@@ -49,6 +55,10 @@ class Baddie():
 
     def tick(self,back_wall,upper_wall,lower_wall, spaceship_position):
         self.shootDelay += 1
+
+        if self.hit_points <= 0:
+            self.alive = False
+
         if self.shootDelay > 30:
             self.shootDelay = 0
 
