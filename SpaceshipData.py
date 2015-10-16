@@ -36,7 +36,7 @@ class SpaceshipData:
         self.lasers = []
         self.laser_width = 80
         self.laser_height = 10
-        self.laser_color = (55,255,55)
+        self.laser_color = (255,55,55)
 
         self.bups = []
         self.bup_width = 8
@@ -116,25 +116,9 @@ class SpaceshipData:
 
 
         if pygame.K_SPACE in keys or 1 in buttons:
-            print self.laserDelay
-            if self.spaceship.bullet_up == 1:
-                if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
-                    self.bullets.append(self.spaceship.fire(self.bullet_width,self.bullet_height,self.bullet_color))
-            if self.spaceship.laser_up == 1:
-                self.laserDelay += 1
-                if self.laserDelay >10:
-                    self.lasers.append(self.spaceship.beam(self.laser_width, self.laser_height, self.laser_color))
-
-            if self.spaceship.missile_up == 2:
-                if self.shootDelay == 15:
-                    if self.misslen ==0:
-                        self.misslen=1
-                    else:
-                        self.misslen = 0
-                    self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
-                if self.shootDelay == 30 :
-
-                    self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+            self.shootBullet(self.spaceship)
+            self.shootMissile(self.spaceship)
+            self.shootLaser(self.spaceship)
 
         if self.laserDelay >= 90:
             self.laserDelay = -20
@@ -369,6 +353,33 @@ class SpaceshipData:
         new_baddie.setHitPoints(15)
         self.baddies.append(new_baddie)
         return
+
+    def shootBullet(self, who):
+        if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
+            if who.bullet_up == 0:
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color))
+            if who.bullet_up == 1:
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color,0,5))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color,0,-5))
+
+    def shootMissile(self, who):
+        if self.spaceship.missile_up == 0:
+            if self.shootDelay == 15:
+                if self.misslen ==0:
+                    self.misslen=1
+                else:
+                    self.misslen = 0
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+            if self.shootDelay == 30 :
+
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+
+
+    def shootLaser(self,who):
+        if who.laser_up == 0:
+                self.laserDelay += 1
+                if self.laserDelay >10:
+                    self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color))
 
     def button(self,x,y,w,h):
         mx, my =pygame.mouse.get_pos()

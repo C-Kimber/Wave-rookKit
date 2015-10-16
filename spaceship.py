@@ -93,9 +93,9 @@ class Spaceship():
            return False
 
 
-    def fire(self,width,height,color):
+    def fire(self,width,height,color,xoff=0,yoff=0):
         if self.alive == True:
-            return Bullet(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
+            return Bullet(width,height,(self.x + self.width+xoff) , (self.y + (self.height /2) - (height/2)+yoff),color)
 
 
     def launch(self,width,height,color):
