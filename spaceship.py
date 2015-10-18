@@ -2,6 +2,7 @@ import pygame
 from bullet import Bullet
 from bullet import Missile
 from bullet import Laser
+from particle import Blast
 
 
 class Spaceship():
@@ -20,6 +21,9 @@ class Spaceship():
         self.bullet_up = 1
         self.missile_up = 0
         self.laser_up = 0
+        self.canBoom =True
+        self.friendly = True
+        self.magnet = 0
         return
 
 
@@ -36,6 +40,10 @@ class Spaceship():
         self.alive = alive
     def tick(self):
         self.isAlive()
+
+    def explode(self, width, height, color,speed, direction):
+        return Blast(self.x,self.y,width, height, color, speed, direction)
+
 
     def checkHit(self,x,y,w,h):
         if self.invinsible != True:
@@ -71,8 +79,8 @@ class Spaceship():
         if self.alive == True:
             self.y -= dy
             # check the wall
-            if self.y < 0:
-                self.y = 0
+            if self.y < 50:
+                self.y = 50
         return
 
     def moveDown(self, dy, board_height):
@@ -93,18 +101,18 @@ class Spaceship():
            return False
 
 
-    def fire(self,width,height,color,xoff=0,yoff=0):
+    def fire(self,width,height,color,direction,xoff=0,yoff=0,):
         if self.alive == True:
-            return Bullet(width,height,(self.x + self.width+xoff) , (self.y + (self.height /2) - (height/2)+yoff),color)
+            return Bullet(width,height,(self.x + self.width+xoff) , (self.y + (self.height /2) - (height/2)+yoff),color, direction)
 
 
-    def launch(self,width,height,color):
+    def launch(self,width,height,color,xoff=0,yoff=0):
         if self.alive== True:
-            return Missile(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
+            return Missile(width,height,(self.x + self.width + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color)
 
-    def beam(self,width,height,color):
+    def beam(self,width,height,color,xoff=0,yoff=0):
         if self.alive== True:
-            return Laser(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color)
+            return Laser(width,height,(self.x + self.width + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color)
 
     def draw(self, surface):
         if self.alive == True:

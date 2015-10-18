@@ -3,7 +3,7 @@ from SpaceshipAdventure import SpaceshipAdventure
 
 def main():
     pygame.font.init()
-    c = SpaceshipAdventure(600, 400, 30)
+    c = SpaceshipAdventure(1200, 800, 30)
     c.main_loop()
     return
     

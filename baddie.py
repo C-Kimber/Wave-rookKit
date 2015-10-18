@@ -3,9 +3,16 @@ import random
 from bullet import BadBullet
 from bullet import BadMissile
 from powerups import *
+from particle import Blast
 
-class Baddie():
-    def __init__(self,width,height,x,y,color, speed, behavior):
+class Baddie(pygame.sprite.Sprite):
+    def __init__(self,id,width,height,x,y,color, speed, behavior):
+
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([width, height])
+        self.rect = self.image.get_rect()
+
+        self.id = id
         self.width  = width
         self.height = height
         self.x      = x
@@ -21,12 +28,11 @@ class Baddie():
         self.behavior = behavior
         self.shootDelay = 0
         self.hasCoin = True
+        self.canBoom = True
         return
 
-
-
-
-
+    def __getitem__(self, item):
+        return item
 
     def getAlive(self):
         return self.alive
@@ -35,8 +41,11 @@ class Baddie():
         if self.alive== True:
             return BadBullet(width,height,(self.x - self.width) , (self.y + self.height),color)
 
-    def package(self, width, height, color):
-        return Coin(width,height,(self.x - self.width) , (self.y - (self.height /2) - (height/2)),color)
+    def package(self, width, height, color,direction):
+        return Coin(width,height,(self.x - self.width) , (self.y - (self.height /2) - (height/2)),color,direction)
+
+    def explode(self, width, height, color,speed, direction):
+        return Blast(self.x,self.y,width, height, color, speed, direction)
 
     def getDimensions(self):
         return self.x,self.y,self.width,self.height
@@ -99,8 +108,8 @@ class Baddie():
             self.setAlive(False)
         else:
             self.x = self.new_x
-        if self.new_y < upper_wall:
-            self.new_y = upper_wall
+        if self.new_y < upper_wall+50:
+            self.new_y = upper_wall+50
             self.vel = 0
         elif self.new_y + self.height > lower_wall:
             self.new_y = lower_wall - self.height
@@ -109,7 +118,14 @@ class Baddie():
         return self.alive
     
     def draw(self, surface):
-        rect = pygame.Rect( self.x, self.y, self.width, self.height )
-        pygame.draw.rect(surface, self.color, rect)
+
+        if self.hit == True:
+            rect = pygame.Rect( self.x, self.y, self.width, self.height )
+            pygame.draw.rect(surface, (255,255,255), rect)
+            self.hit = False
+        else:
+            rect = pygame.Rect( self.x, self.y, self.width, self.height )
+            pygame.draw.rect(surface, self.color, rect)
+
         return
         

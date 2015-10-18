@@ -1,9 +1,10 @@
 import pygame
 import random
+import CONFIG
 
 class Coin():
 
-    def __init__(self,width,height,x,y,color):
+    def __init__(self,width,height,x,y,color,direction):
         self.width  = width
         self.height = height
         self.x      = x
@@ -13,11 +14,14 @@ class Coin():
         self.alive  = True
         self.hit    = False
         self.friendly = True
+        self.direction = direction
+        self.vel = 5
+        self.id = 'coin'
         return
 
     def checkHitSpaceship(self,x,y,w,h):
         if self.hitRectangle(x, y, w, h):
-            self.setAlive(False)
+
             self.hit = True
 
     def checkBackWall(self,back_wall):
@@ -25,9 +29,46 @@ class Coin():
             self.setAlive(False)
         return
 
-    def move(self):
-        self.x -= self.speed
-        self.y += random.uniform(-2,2)
+    def move(self,attractlvl,whox,whoy):
+        self.vel -= self.speed
+
+        if self.vel < 0:
+            self.vel = 0
+        if self.direction == 'up':
+            self.y -= self.vel
+        elif self.direction == 'down':
+            self.y += self.vel
+        elif self.direction == 'left':
+            self.x -= self.vel
+        elif self.direction == 'right':
+            self.x += self.vel
+        elif self.direction == 'upright':
+            self.y -= self.vel
+            self.x += self.vel
+        elif self.direction == 'upleft':
+            self.y -= self.vel
+            self.x -= self.vel
+        elif self.direction == 'downright':
+            self.y += self.vel
+            self.x += self.vel
+        elif self.direction == 'downleft':
+            self.y += self.vel
+            self.x -= self.vel
+        else:
+            self.x += self.vel
+        if self.vel <= 0:
+            self.x -= self.speed
+            self.y += random.uniform(-2,2)
+        distance = CONFIG.Distance(whox,whoy,self.x,self.y)
+
+        if distance <=  300*(attractlvl/2):
+
+            if self.y < whoy:
+                self.y += attractlvl * .5
+            if self.y > whoy:
+                self.y -= attractlvl * .5
+
+
         return
 
     def setAlive(self,alive):
@@ -69,11 +110,12 @@ class MissileUp(Coin):
         self.alive  = True
         self.hit    = False
         self.friendly = True
+        self.iswhat = 'coin'
         return
 
     def checkHitSpaceship(self,x,y,w,h):
         if self.hitRectangle(x, y, w, h):
-            self.setAlive(False)
+
             self.hit = True
 
     def checkBackWall(self,back_wall):

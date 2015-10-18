@@ -1,18 +1,21 @@
 import pygame
 from pygame import *
+from random import *
+from math import *
 import random
 
 class Bullet():
 
-    def __init__(self,width,height,x,y,color):
+    def __init__(self,width,height,x,y,color, direction='normal'):
         self.width  = width
         self.height = height
         self.x      = x
         self.y      = y
-        self.speed  = 7
+        self.speed  = 14
         self.color  = color
         self.alive  = True
         self.hit    = False
+        self.direction = direction
         return
 
     def checkHit(self,x,y,w,h):
@@ -26,7 +29,15 @@ class Bullet():
         return
 
     def moveBullet(self):
-        self.x += self.speed
+        if self.direction == 'up':
+            self.y -= self.speed/7
+        if self.direction == 'down':
+            self.y += self.speed/7
+        if self.direction == 'up2':
+            self.y -= self.speed/3
+        if self.direction == 'down2':
+            self.y += self.speed/3
+        self.x += self.speed        #always move it along the x-axis
         return
 
     def setAlive(self,alive):
@@ -64,36 +75,41 @@ class Missile(Bullet):
         self.width = width
         self.height = height
         self.color = color
-
+        self.canBoom = True
 
         return
 
     def moveMissile(self, y):
 
         self.n = 0
-        self.xvel += 1
+        self.xvel += 2
         if y == 0:
-            self.yvel += .1
-            if self.n == 1:
-                self.yvel += -.2
-        elif y == 1:
-            self.yvel -= .1
-            if self.n == 1:
-                self.yvel += .2
 
-        if self.xvel > 8:
-            self.xvel = 8
-        if self.yvel > 2:
-            self.yvel = 0
+            if self.n == 1:
+                self.yvel += -.5
+            else:
+                self.yvel += .025
+        elif y == 1:
+
+            if self.n == 1:
+                self.yvel += .5
+            else:
+                self.yvel -= .025
+
+        if self.xvel > 18:
+            self.xvel = 18
+        if self.yvel > 3:
+            self.yvel = random.randint(-5,5)
             self.n = 1
-        if self.yvel < -2:
-            self.yvel = 0
+        if self.yvel < -3:
+            self.yvel = random.randint(-5,5)
             self.n = 1
 
 
 
 
         self.x += self.xvel
+
         self.y+= self.yvel
         return
 
@@ -214,6 +230,10 @@ class Laser():
        # pygame.draw.rect(surface, self.color, rect)
         #return
 
+class Lightning():
+
+    def __init__(x,y,size,ang,count):
+        pass
 
 class BadBullet():
 
@@ -222,7 +242,7 @@ class BadBullet():
         self.height = height
         self.x      = x
         self.y      = y
-        self.speed  = 7
+        self.speed  = 14
         self.color  = color
         self.alive  = True
         self.hit    = False

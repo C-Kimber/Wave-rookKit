@@ -2,6 +2,19 @@ import pygame
 import random
 from spaceship import Spaceship
 from baddie import Baddie
+from particle import Star
+from particle import Blast
+from itertools import repeat
+
+RED = (255,0,0)
+DRED = (102,0,0)
+BRED = (255,51,51)
+ORANGE = (255,128,0)
+DORANGE = (204,102,0)
+YELLOW = (255,255,0)
+
+
+
 
 class SpaceshipData:
 
@@ -17,9 +30,9 @@ class SpaceshipData:
         self.spaceship_width = 20
         self.spaceship_height = 10
         self.spaceship_health = 3
-        self.spaceship_speed = 5
+        self.spaceship_speed = 7
 
-        self.spaceship = Spaceship(self.spaceship_width,self.spaceship_height,0,(self.height / 2) - 10, (255,255,255),self.spaceship_health)
+        self.spaceship = Spaceship(self.spaceship_width,self.spaceship_height,0,(self.height / 2) - 10, (0,255,255),self.spaceship_health)
         self.spaceship_y = self.spaceship.spaceshipPosition()[1]
 
         self.coins = []
@@ -33,9 +46,21 @@ class SpaceshipData:
         self.bullet_height = 5
         self.bullet_color = (255,255,255)
 
+        self.bombs = 3
+        self.bomb = False
+        self.boom =False
+        self.bomb_radius = 20
+        self.ba = 1
+
+        self.stars = []
+        self.star_width = 1
+        self.star_height = 1
+        self.star_direction = 'normal'
+        self.star_color = (255,255,255)
+
         self.lasers = []
-        self.laser_width = 80
-        self.laser_height = 10
+        self.laser_width =100
+        self.laser_height = 5
         self.laser_color = (255,55,55)
 
         self.bups = []
@@ -52,7 +77,7 @@ class SpaceshipData:
         self.misslen = 0
         self.missile_width = 15
         self.missile_height = 5
-        self.missile_color = (55,44,44)
+        self.missile_color = (55,144,144)
 
         self.badBullets = []
         self.badBullet_width = 5
@@ -60,9 +85,22 @@ class SpaceshipData:
         self.badBullet_color = (0,255,255)
 
         self.baddies = []
-        self.baddie_width = 20
-        self.baddie_height = 20
+        self.baddie_width = 40
+        self.baddie_height = 40
         self.baddie_color = (0,155,0)
+        self.baddie_id = 0
+
+
+        self.particles = [] * 100
+        self.particle_width = 20
+        self.particle_height = 20
+
+        self.particle_color=(255,255,255)
+        self.particle_speed = .3
+        self.f = ['up', 'down','left','right','upright','upleft','downright','downleft']
+        self.c = [ORANGE,RED,DRED,BRED,ORANGE,DORANGE,YELLOW ]
+
+
         self.score = 0
 
         self.wave1 = True
@@ -71,14 +109,23 @@ class SpaceshipData:
         self.delay = 0
         self.shootDelay = 0
         self.laserDelay = 0
+        self.laser_on = False
 
         self.a = -1
 
         self.bullet_up = 0
         self.missile_up = 1
 
-
         self.invinsiblen = 0
+
+        baddie_list = pygame.sprite.Group
+
+        all_sprite_list = pygame.sprite.Group
+
+        self.e = 0
+        self.e_t = 0
+        self.e_b = 0
+        self.exploding = False
         return
 
     def evolve(self, keys, newkeys, buttons, newbuttons, mouse_position):
@@ -88,17 +135,40 @@ class SpaceshipData:
         if pygame.K_RIGHT in keys or pygame.K_d in keys:
             self.spaceship.moveRight(self.spaceship_speed,self.upper_limit)
         if pygame.K_UP in keys or pygame.K_w in keys:
-            self.spaceship.moveUp(self.spaceship_speed)
+            self.spaceship.moveUp(self.spaceship_speed+3)
         if pygame.K_DOWN in keys or pygame.K_s in keys:
-            self.spaceship.moveDown(self.spaceship_speed,self.height)
+            self.spaceship.moveDown(self.spaceship_speed+3,self.height)
 
-        """if pygame.K_SPACE in newkeys or 1 in newbuttons:
-            self.bullets.append(self.spaceship.fire(self.bullet_width,self.bullet_height,self.bullet_color))
-            self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
-            if self.misslen ==0:
-                self.misslen=1
-            else:
-                self.misslen = 0"""
+        if pygame.K_LCTRL in newkeys:
+            if self.bombs > 0:
+                if self.bomb_radius == 20:
+                    self.bomb = True
+                    self.bombs -= 1
+        if self.bomb_radius >= 6000:
+            self.boom = False
+            self.bomb_radius = 20
+            self.ba = 1
+
+        self.particle_direction = random.choice(self.f)
+        self.particle_color = random.choice(self.c)
+
+
+
+        if pygame.K_p in newkeys:
+            self.e_b +=1
+
+        if self.e > 1:
+            self.e = 0
+        self.e += self.e_b
+
+        if self.e == 1:
+            self.e_t += 1
+            self.particles.append(self.spaceship.explode(self.particle_width,self.particle_height,self.particle_color,self.particle_speed,self.particle_direction))
+        if self.e_t > 50:
+            self.e= 0
+            self.e_t = 0
+            self.e_b = 0
+
 
         self.shootDelay += 1
 
@@ -120,8 +190,10 @@ class SpaceshipData:
             self.shootMissile(self.spaceship)
             self.shootLaser(self.spaceship)
 
-        if self.laserDelay >= 90:
-            self.laserDelay = -20
+        if self.laserDelay >= 60:
+            self.laserDelay = 0
+        if self.laserDelay <= 0:
+            self.laserDelay = 0
 
         self.delay += 1
         if self.delay >= 120:
@@ -170,10 +242,36 @@ class SpaceshipData:
 
         self.spaceship.tick()
 
+        self.addStar(2,2,self.width,random.randint(50,self.height),(255,255,255),10,'normal')
+        self.addStar(2,2,self.width,random.randint(50,self.height),(155,155,155),7,'normal')
+        self.addStar(2,2,self.width,random.randint(50,self.height),(100,100,100),5,'normal')
+        self.addStar(2,2,self.width,random.randint(50,self.height),(55,55,55),2,'normal')
 
         for bullet in self.bullets:
             bullet.moveBullet()
             bullet.checkBackWall(self.width)
+
+        for star in self.stars:
+            star.move(self.spaceship.x, self.spaceship.y)
+            star.checkBackWall(0)
+
+        for p in self.particles:
+            p.move()
+            p.checkWalls(0,50,self.width,self.height)
+            a =int(p.color[0]-p.vel)
+            b= int(p.color[1]-p.vel)
+            c=int(p.color[2]-p.vel)
+            if a < 0:
+                a= 0
+            if c < 0:
+                c= 0
+            if b < 0:
+                b= 0
+
+            p.color =(a,b,c)
+
+
+
 
         for laser in self.lasers:
             laser.moveLaser()
@@ -204,8 +302,16 @@ class SpaceshipData:
                 bbullet.setAlive(False)
 
         for coin in self.coins:
-            coin.move()
+            coin.move(self.spaceship.magnet,self.spaceship.x, self.spaceship.y)
             coin.checkBackWall(0)
+            if not coin.alive:
+                continue
+            x,y,h,w = coin.getDimensions()
+            self.spaceship.checkHitFriendly(x,y,w,h)
+            if self.spaceship.hit == True:
+                coin.setAlive(False)
+                self.spaceship.hit = False
+                self.coinn +=1
 
 
 
@@ -213,8 +319,13 @@ class SpaceshipData:
         self.spaceship_y = self.spaceship.spaceshipPosition()[1]
         for baddie in self.baddies:
 
-            baddie.tick(0,0,self.height, self.spaceship_y)
 
+            baddie.tick(0,0,self.height, self.spaceship_y)
+            if self.bomb == True:
+               self.bomb = False
+               self.boom = True
+               if self.boom == True:
+                   del self.baddies[:]
 
             if not baddie.alive:
                 continue
@@ -231,7 +342,15 @@ class SpaceshipData:
                 self.spaceship.hit = False
             if baddie.behavior == 3 or baddie.behavior == 1:
                 if self.shootDelay == 15:
-                    self.badBullets.append(baddie.fire(self.badBullet_width,self.badBullet_height,self.badBullet_color))
+                   pass # self.badBullets.append(baddie.fire(self.badBullet_width,self.badBullet_height,self.badBullet_color))
+
+
+
+
+
+        if self.bomb == True:
+               self.bomb = False
+               self.boom = True
         for l in self.lasers:
             if not l.alive:
                 continue
@@ -248,7 +367,7 @@ class SpaceshipData:
                     baddie.hit = False
                     if baddie.hit_points <= 0:
                         if hasattr(baddie,'hasCoin')==True:
-                            self.coins.append(baddie.package(self.coin_width, self.coin_height, self.coin_color))
+                            self.coins.append(baddie.package(self.coin_width, self.coin_height, self.coin_color),self.particle_direction)
 
 
         for missile in self.missiles:
@@ -283,6 +402,7 @@ class SpaceshipData:
         live_badBullets = []
         live_coins = []
         live_lasers = []
+        live_particles = []
 
         for bullet in self.bullets:
             if bullet.alive:
@@ -305,6 +425,9 @@ class SpaceshipData:
         for m in self.mups:
             if m.alive:
                 live_mups.append(m)
+        for p in self.particles:
+            if p.alive:
+                live_particles.append(p)
 
         for b in self.bups:
                 if b.alive:
@@ -320,66 +443,104 @@ class SpaceshipData:
         self.projectiles = live_badBullets + live_missiles + live_bullets + live_lasers
         self.coins = live_coins
         self.powerups = live_coins + live_mups + live_bups
+        self.particles = live_particles
+
         return
 
 
 
     def addRandBaddie(self):
-        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, random.randint(0,(self.height-self.baddie_height)), self.baddie_color, 3, 0)
+
+        new_baddie = Baddie(self.baddie_id, self.baddie_width, self.baddie_height, self.width, random.randint(0,(self.height-self.baddie_height)), self.baddie_color, 3, 0)
         self.baddies.append( new_baddie )
+
 
         return
 
     def addRandStrongBaddie(self):
-        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, random.randint(0, (self.height-self.baddie_height)), (155,0,0), 2, 1)
+        new_baddie = Baddie(self.baddie_id,self.baddie_width, self.baddie_height, self.width, random.randint(0, (self.height-self.baddie_height)), (155,0,0), 2, 1)
         new_baddie.setHitPoints(2)
         self.baddies.append(new_baddie)
+
         return
 
     def addBaddie(self, height):
-        new_baddie = Baddie( self.baddie_width, self.baddie_height, self.width, height, self.baddie_color, 3, 0 )
+        new_baddie = Baddie(self.baddie_id, self.baddie_width, self.baddie_height, self.width, height, self.baddie_color, 3, 0 )
         self.baddies.append( new_baddie )
-
+        new_baddie.id
         return
 
     def addStrongBaddie(self, height):
-        new_baddie = Baddie(self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2, 1)
+        new_baddie = Baddie(self.baddie_id,self.baddie_width, self.baddie_height, self.width, height, (155,0,0), 2, 1)
         new_baddie.setHitPoints(2)
         self.baddies.append(new_baddie)
         return
 
     def addBigBaddie(self):
-        new_baddie = Baddie(self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1, 3)
+        new_baddie = Baddie(self.baddie_id,self.baddie_width*5, self.baddie_height*5, self.width, 200, (55,0,0), 1, 3)
         new_baddie.setHitPoints(15)
         self.baddies.append(new_baddie)
         return
 
+    def addStar(self,width,height,x,y,color,speed,direction):
+        new_star = Star(width,height,x,y,color,speed,direction)
+        self.stars.append(new_star)
+        return
+
     def shootBullet(self, who):
         if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
-            if who.bullet_up == 0:
+            if who.bullet_up == 2:
                 self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color))
-            if who.bullet_up == 1:
+            if who.bullet_up == 2:
                 self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color,0,5))
                 self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color,0,-5))
+            if who.bullet_up == 2     :
+                self.bullets.append( who.fire(self.bullet_width,self.bullet_height,self.bullet_color,'normal'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'up'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'down'))
+            if who.bullet_up == 1     :
+                self.bullets.append( who.fire(self.bullet_width,self.bullet_height,self.bullet_color,'normal'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'up'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'down'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'up2'))
+                self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color, 'down2'))
 
     def shootMissile(self, who):
-        if self.spaceship.missile_up == 0:
+        if self.spaceship.missile_up == 1:
             if self.shootDelay == 15:
                 if self.misslen ==0:
                     self.misslen=1
                 else:
                     self.misslen = 0
-                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,-10))
             if self.shootDelay == 30 :
 
-                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color))
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,10))
+        if who.missile_up == 2:
+            if self.shootDelay == 15:
+                if self.misslen ==0:
+                    self.misslen=1
+                else:
+                    self.misslen = 0
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,-10))
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,-20))
+            if self.shootDelay == 30 :
+
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,10))
+                self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0, 20))
 
 
     def shootLaser(self,who):
-        if who.laser_up == 0:
+
+        if who.laser_up == 1:
                 self.laserDelay += 1
-                if self.laserDelay >10:
+                if self.laserDelay >20:
                     self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color))
+        if who.laser_up == 2:
+                self.laserDelay += 1
+                if self.laserDelay >20:
+                    self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color,0,-10))
+                    self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color,0,10))
 
     def button(self,x,y,w,h):
         mx, my =pygame.mouse.get_pos()
@@ -400,20 +561,21 @@ class SpaceshipData:
                     b.checkHitFriendly(x,y,w,h)
                     if b.hit == True:
                         a.setAlive(False)
-                        b.hit = False
-                        return b.hit
+
+                    return b.hit
             else:
                 x,y,h,w = a.getDimensions()
                 collideE.checkHitFriendly(x,y,w,h)
                 if collideE.hit == True:
-                        a.setAlive(False)
-                        collideE.hit = False
-                if collideE.alive == False:
-                    collideE.hit = False
-                    return collideE.hit
+                    a.setAlive(False)
+
+                    a.hit = False
+                    if hasattr(a,'id')=='coin':
+                        self.coinn+=1
+            return collideE.hit
 
 
-    def ifCollide(self, collider, collideE, rhurt=1, ehurt=1):
+    def ifCollide(self, collider, collideE, rhurt, ehurt):
         for a in collider:
             if not a.alive:
                 continue
@@ -422,54 +584,64 @@ class SpaceshipData:
                     if not b.alive:
                         continue
 
-                    if hasattr(a, 'friendly'):
-                        if a.friendly == True:
-                            pass
-                    else:
-                        pass
 
                     x,y,h,w = a.getDimensions()
                     b.checkHit(x,y,w,h)
                     if b.hit == True:
-                        if hasattr(b,'hit_points')==True:
-                            b.hit_points -= ehurt
+                        a.hit = True
+                        self.hurtIt(a,rhurt)
+                        self.hurtIt(b,ehurt)
 
-                        else:
-                            b.setAlive(False)
-                        if hasattr(a,'hit_points')==True:
-                            a.hit_points -= rhurt
+                        self.explodeIt(a)
 
-                        else:
-                            a.setAlive(False)
-                        #if a.alive == False:
-
-                        if hasattr(a,'hasCoin')==True:
-
-                            self.coins.append(a.package(self.coin_width, self.coin_height, self.coin_color))
+                        self.explodeIt(collideE)
+                        self.coinIt(a)
+                        self.coinIt(b)
                         return b.hit
+
             else:
                 x,y,h,w = a.getDimensions()
                 collideE.checkHit(x,y,w,h)
                 if collideE.hit == True:
-                    if hasattr(collideE,'hit_points')==True:
-                        collideE.hit_points -= ehurt
-                    else:
-                        collideE.setAlive(False)
-                    if hasattr(a,'hit_points')==True:
-                        a.hit_points -= rhurt
-                    else:
-                        a.setAlive(False)
-                if collideE.alive == False:
-                    if hasattr(a,'hasCoin')==True:
-                        self.coins.append(collideE.package(self.coin_width, self.coin_height, self.coin_color))
+                    a.hit = True
+
+                    self.hurtIt(collideE,ehurt)
+                    self.hurtIt(a,rhurt)
+                    self.coinIt(a)
+
+                    self.explodeIt(a)
+                    self.explodeIt(collideE)
+
                     return collideE.hit
+    def coinIt(self,who):
+        if hasattr(who,'hasCoin')==True:
+            self.coins.append(who.package(self.coin_width, self.coin_height, self.coin_color,self.particle_direction))
+    def explodeIt(self, who):
+        if hasattr(who, 'canBoom')==True:
 
-
+                self.particles.append(who.explode(self.particle_width,self.particle_height,self.particle_color,self.particle_speed,self.particle_direction))
+    def hurtIt(self, who,much):
+        if hasattr(who,'friendly')==True:
+                pass
+        else:
+            if hasattr(who,'hit_points')==True:
+                who.hit_points -= much
+            else:
+                who.setAlive(False)
 
 
     def draw(self,surface):
+
         rect = pygame.Rect(0,0,self.width,self.height)
+
+
+
         surface.fill((0,0,0),rect )
+
+        rect = pygame.Surface((self.width,50), pygame.SRCALPHA, 32)
+        rect.fill((255, 255, 255, 50))
+        surface.blit(rect, (0,0))
+
         self.spaceship.draw(surface)
         myfont = self.font2
         myfont1 = self.font
@@ -478,6 +650,22 @@ class SpaceshipData:
         surface.blit(label, (480, 20))
         label2 = myfont.render("Coins "+str(self.coinn), 1, (255,255,0))
         surface.blit(label2, (350, 20))
+        label3 = myfont.render("Bombs "+str(self.bombs), 1, (255,255,0))
+        surface.blit(label3, (250, 20))
+
+        if self.boom == True:
+            x,y = self.spaceship.spaceshipPosition()
+            self.ba += 2
+            self.bomb_radius += self.ba*2
+            pygame.draw.circle(surface,  (155,0,0), (x,y), self.bomb_radius,10)
+            pygame.draw.circle(surface, (255,0,0), (x,y), self.bomb_radius/2,5)
+            pygame.draw.circle(surface, (255,255,0), (x,y), self.bomb_radius/3,3)
+            pygame.draw.circle(surface, (255,255,155),(x,y),self.bomb_radius/4,3 )
+
+            pygame.draw.circle(surface, (55,0,0), (x+50,y+50), self.bomb_radius, 10)
+            pygame.draw.circle(surface, (255,0,0), (x+50,y-50), self.bomb_radius/2, 5)
+            pygame.draw.circle(surface, (255,255,0), (x-50,y+50), self.bomb_radius/3, 3)
+            pygame.draw.circle(surface, (255,255,155),(x-50,y-50),self.bomb_radius/4,3 )
         if self.spaceship.health == 3:
             rect = pygame.Rect( 20, 20, 20, 20 )
             pygame.draw.rect(surface, (255,0,0), rect)
@@ -494,6 +682,8 @@ class SpaceshipData:
             rect = pygame.Rect( 20, 20, 20, 20 )
             pygame.draw.rect(surface, (255,0,0), rect)
 
+        for s in self.stars:
+            s.draw(surface)
 
         for p in self.powerups:
             p.draw(surface)
@@ -502,9 +692,21 @@ class SpaceshipData:
         for baddie in self.baddies:
             baddie.draw(surface)
 
+        for l in self.particles:
+            l.draw(surface)
+
+
         if self.spaceship.health <= 0:
+            rect = pygame.Surface((self.width,self.height), pygame.SRCALPHA, 32)
+            rect.fill((0, 0, 0, 200))
+            surface.blit(rect, (0,0))
+
+            rect = pygame.Surface((self.width,50), pygame.SRCALPHA, 32)
+            rect.fill((255, 255, 255, 50))
+            surface.blit(rect, (0,self.height/2))
+
             label1 = myfont1.render("Game Over", 1, (255,255,0))
-            surface.blit(label1, (self.width/3, self.height/2))
+            surface.blit(label1, (self.width/2, self.height/2))
         return
 
     
