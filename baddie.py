@@ -42,7 +42,7 @@ class Baddie(pygame.sprite.Sprite):
             return BadBullet(width,height,(self.x - self.width) , (self.y + self.height),color)
 
     def package(self, width, height, color,direction):
-        return Coin(width,height,(self.x - self.width) , (self.y - (self.height /2) - (height/2)),color,direction)
+        return Coin(width,height,(self.x) , (self.y - (self.height /2) + (height/2)),color,direction)
 
     def explode(self, width, height, color,speed, direction):
         return Blast(self.x,self.y,width, height, color, speed, direction)

@@ -1,4 +1,5 @@
 import pygame
+import CONFIG
 from game_mouse import Game
 from SpaceshipData import SpaceshipData
 
@@ -13,7 +14,12 @@ class SpaceshipAdventure(Game):
         return
 
     def paint(self, surface):
-        self.data.draw(surface)
+        if CONFIG.GAME_STATE == 2:
+            self.data.draw(surface)
+        elif CONFIG.GAME_STATE == 1:
+            self.data.loadDraw(surface)
+        elif CONFIG.GAME_STATE == 0:
+            self.data.menuDraw(surface)
         return
 
     

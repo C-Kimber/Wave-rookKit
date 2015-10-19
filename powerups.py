@@ -68,6 +68,9 @@ class Coin():
             if self.y > whoy:
                 self.y -= attractlvl * .5
 
+        if self.y <= 50:
+            self.y = 55
+
 
         return
 

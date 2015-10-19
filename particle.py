@@ -23,8 +23,10 @@ class Star():
             self.hit = True
 
     def checkBackWall(self,back_wall):
-        if (self.x + self.width) > back_wall:
-            self.setAlive(False)
+
+        if self.x <= 400:
+            self.alive = False
+
         return
 
     def move(self,whox,whoy):

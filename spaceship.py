@@ -39,7 +39,7 @@ class Spaceship():
     def setAlive(self, alive):
         self.alive = alive
     def tick(self):
-        self.isAlive()
+        pass #self.isAlive()
 
     def explode(self, width, height, color,speed, direction):
         return Blast(self.x,self.y,width, height, color, speed, direction)
