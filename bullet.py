@@ -2,6 +2,7 @@ import pygame
 from pygame import *
 from random import *
 from math import *
+from particle import *
 import random
 
 class Bullet():
@@ -54,6 +55,10 @@ class Bullet():
                 (self.y <= y + h)) :
                 return True
         return False
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
     
     def draw(self, surface):
         rect = pygame.Rect( self.x, self.y, self.width, self.height )
@@ -65,9 +70,10 @@ class Missile(Bullet):
 
 
 
-    def __init__(self,width,height,x,y,color):
+    def __init__(self,width,height,x,y,color,eby):
         self.alive = True
         self.hit    = False
+        self.eby = eby
         self.yvel = 0
         self.xvel = -10
         self.x = x
@@ -110,8 +116,12 @@ class Missile(Bullet):
 
         self.x += self.xvel
 
-        self.y+= self.yvel
+        self.y+= self.yvel +self.eby
         return
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
 
     def checkHitBaddie(self,x,y,w,h):
         if self.hitRectangle(x, y, w, h):
@@ -182,6 +192,10 @@ class Laser():
     def setAlive(self,alive):
         self.alive = alive
         return
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
 
     def getHit(self):
         return self.hit
@@ -277,6 +291,10 @@ class BadBullet():
                 return True
         return False
 
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
     def getDimensions(self):
         return self.x, self.y, self.height, self.width
 
@@ -341,6 +359,10 @@ class BadMissile(BadBullet):
             self.setAlive(False)
         return
 
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
 
     def setAlive(self,alive):
         self.alive = alive
@@ -361,3 +383,112 @@ class BadMissile(BadBullet):
         rect = pygame.Rect( self.x, self.y, self.width, self.height )
         pygame.draw.rect(surface, self.color, rect)
         return
+
+
+
+class BadLaser():
+
+    def __init__(self,width,height,x,y,color):
+        self.width  = width
+        self.height = height
+        self.x      = x-50
+        self.y      = y
+        self.speed  = -70
+        self.color  = color
+        self.radius = 0.4
+        self.alive  = True
+        self.hit    = False
+        return
+
+
+
+
+    def checkHit(self,x,y,w,h):
+        if self.hitRectangle(x, y, w, h):
+
+            self.hit = True
+
+    def setHit(self, hit):
+        self.hit = hit
+
+    def checkBackWall(self,back_wall):
+        if (self.x + self.width) < back_wall:
+            self.setAlive(False)
+        return
+
+    def moveLaser(self):
+        self.x += self.speed
+        self.y += random.uniform(-.5,.5)
+        return
+
+    def setAlive(self,alive):
+        self.alive = alive
+        return
+
+    def getHit(self):
+        return self.hit
+
+    def hitRectangle(self, x, y, w, h):
+        if( ((self.x + self.width) >= x) and
+            (self.x <= x + w) ):
+            if( ((self.y + self.height) >= y) and
+                (self.y <= y + h)) :
+                return True
+        return False
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
+    def draw(self, surface):
+        rect         = pygame.Rect( self.x, self.y, self.width, self.height )
+        radius       = self.radius
+        rect         = Rect(rect)
+        color        = self.color
+        color        = Color(*color)
+        alpha        = color.a
+        color.a      = 0
+        pos          = rect.topleft
+        rect.topleft = 0,0
+        rectangle    = Surface(rect.size,SRCALPHA)
+
+        circle       = Surface([min(rect.size)*2]*2,SRCALPHA)
+        draw.ellipse(circle,(0,0,0),circle.get_rect(),0)
+        circle       = transform.smoothscale(circle,[int(min(rect.size)*radius)]*2)
+
+        radius              = rectangle.blit(circle,(0,0))
+        radius.bottomright  = rect.bottomright
+        rectangle.blit(circle,radius)
+        radius.topright     = rect.topright
+        rectangle.blit(circle,radius)
+        radius.bottomleft   = rect.bottomleft
+        rectangle.blit(circle,radius)
+
+        rectangle.fill((0,0,0),rect.inflate(-radius.w,0))
+        rectangle.fill((0,0,0),rect.inflate(0,-radius.h))
+
+        rectangle.fill(color,special_flags=BLEND_RGBA_MAX)
+        rectangle.fill((255,255,255,alpha),special_flags=BLEND_RGBA_MIN)
+
+        return surface.blit(rectangle,pos)
+
+       # rect = pygame.Rect( self.x, self.y, self.width, self.height )
+       # pygame.draw.rect(surface, self.color, rect)
+        #return
+
+class HomingBullet(object):
+    def __init__(self, pos, target_pos, speed=2.5):
+        self.pos = pos
+        self.angle = CONFIG.get_angle(self.pos, target_pos)
+        self.speed = speed
+        self.rect = pygame.Rect(0, 0, 2, 2)
+        self.rect.center = pos
+
+    def update(self, target_pos):
+        self.angle = CONFIG.get_angle(self.pos, target_pos)
+        self.pos = CONFIG.project(self.pos, self.angle, self.speed)
+        self.rect.center = self.pos
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, pygame.Color("white"), self.rect)
+

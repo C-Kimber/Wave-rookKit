@@ -2,6 +2,41 @@ import pygame
 import random
 import CONFIG
 
+
+class Fragment(pygame.sprite.Sprite):
+        """a fragment of an exploding Bird"""
+        gravity = True # fragments fall down ?
+        def __init__(self, pos, color):
+            pygame.sprite.Sprite.__init__(self, self.groups)
+            self.pos = [0.0,0.0]
+            self.a = 1
+            self.pos[0] = pos[0]
+            self.pos[1] = pos[1]
+            self.image = pygame.Surface((50,50))
+            self.image.set_colorkey((0,0,0)) # black transparent
+            pygame.draw.circle(self.image, (color), (25,25), random.randint(5,10))
+            self.image = self.image.convert_alpha()
+            self.rect = self.image.get_rect()
+            self.rect.center = self.pos #if you forget this line the sprite sit in the topleft corner
+            self.lifetime =  random.uniform(.1,.5) # max 6 seconds
+            self.time = 0.0
+
+            self.fragmentmaxspeed = (random.randint(1000,2000)*self.a) # try out other factors !
+            self.dx = random.randint(-self.fragmentmaxspeed,self.fragmentmaxspeed)
+            self.dy = random.randint(-self.fragmentmaxspeed,self.fragmentmaxspeed)
+
+
+        def update(self, seconds):
+            self.time += seconds
+            self.a += seconds
+            if self.time > self.lifetime:
+                self.kill()
+            self.pos[0] += self.dx * seconds
+            self.pos[1] += self.dy * seconds
+
+            self.rect.centerx = round(self.pos[0],0)
+            self.rect.centery = round(self.pos[1],0)
+
 class Star():
 
     def __init__(self,width,height,x,y,color,speed, direction='normal'):
@@ -82,8 +117,8 @@ class Blast():
     def __init__(self,x,y,w,h,color,speed,direction):
         self.x = x
         self.y = y
-        self.width = w
-        self.height = h
+        self.width = w * 4
+        self.height = h *4
         self.speed = speed
         self.direction = direction
         self.color = color

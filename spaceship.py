@@ -1,8 +1,7 @@
 import pygame
-from bullet import Bullet
-from bullet import Missile
-from bullet import Laser
+from bullet import *
 from particle import Blast
+from particle import Fragment
 
 
 class Spaceship():
@@ -19,11 +18,12 @@ class Spaceship():
         self.invinsible = False
         self.cannonlvl = 0
         self.bullet_up = 1
-        self.missile_up = 0
-        self.laser_up = 0
+        self.missile_up =0
+        self.laser_up =0
         self.canBoom =True
         self.friendly = True
-        self.magnet = 0
+        self.magnet = 1
+        self.pos = x,y
         return
 
 
@@ -41,12 +41,13 @@ class Spaceship():
     def tick(self):
         pass #self.isAlive()
 
-    def explode(self, width, height, color,speed, direction):
-        return Blast(self.x,self.y,width, height, color, speed, direction)
+    def explode(self,poss, color):
+
+        return Fragment(poss,color)
 
 
     def checkHit(self,x,y,w,h):
-        if self.invinsible != True:
+        if self.invinsible == False:
             if self.alive == True:
                 if self.hitRectangle(x, y, w, h):
                     self.hit = True
@@ -100,15 +101,22 @@ class Spaceship():
                    return True
            return False
 
+    def getDimensions(self):
+        return self.x,self.y,self.width,self.height
+
+    def seekingFire(self,start_pos, target_pos, speed ):
+        if self.alive == True:
+            return HomingBullet(start_pos,target_pos,speed)
 
     def fire(self,width,height,color,direction,xoff=0,yoff=0,):
         if self.alive == True:
-            return Bullet(width,height,(self.x + self.width+xoff) , (self.y + (self.height /2) - (height/2)+yoff),color, direction)
+            return Bullet(width,height,(self.x + self.width + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color,direction)
 
 
-    def launch(self,width,height,color,xoff=0,yoff=0):
+    def launch(self,width,height,color,xoff=0,yoff=0,eby=0):
         if self.alive== True:
-            return Missile(width,height,(self.x + self.width + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color)
+
+            return Missile(width,height,(self.x + self.width + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color,eby)
 
     def beam(self,width,height,color,xoff=0,yoff=0):
         if self.alive== True:

@@ -2,10 +2,11 @@ import pygame
 import random
 from bullet import BadBullet
 from bullet import BadMissile
+from bullet import BadLaser
 from powerups import *
-from particle import *
+from particle import Blast
 
-class Baddie(pygame.sprite.Sprite):
+class Boss(pygame.sprite.Sprite):
     def __init__(self,id,width,height,x,y,color, speed, behavior):
 
         pygame.sprite.Sprite.__init__(self)
@@ -23,15 +24,12 @@ class Baddie(pygame.sprite.Sprite):
         self.color  = color
         self.alive  = True
         self.hit = False
-        self.hit_points = 1
+        self.fakeHit = False
+        self.hit_points = 100
         self.vel = 0
         self.behavior = behavior
         self.shootDelay = 0
         self.hasCoin = True
-        self.hasMup = False
-        self.hasBup = False
-        self.hasLup = False
-        self.isTurret = False
         self.canBoom = True
         self.canGetHit = True
         return
@@ -70,7 +68,11 @@ class Baddie(pygame.sprite.Sprite):
         if self.hit_points <= 0:
             self.setAlive(False)
 
-    def tick(self,back_wall,upper_wall,lower_wall, spaceship_position):
+    def beam(self,width,height,color,xoff=0,yoff=0):
+        if self.alive== True:
+            return BadLaser(width,height,(self.x + xoff) , (self.y + (self.height /2) - (height/2) + yoff),color)
+
+    def tick(self,back_wall,upper_wall,lower_wall, spaceship_position,turrets):
         self.shootDelay += 1
 
         if self.hit_points <= 0:
@@ -124,7 +126,10 @@ class Baddie(pygame.sprite.Sprite):
                 pass#self.fire(20,20,(255,255,255))
             if self.x <= 800:
                 self.speed = 0
-
+            if self.hasTurrets(turrets) == True:
+                self.canGetHit = True
+            else:
+                self.canGetHit = False
         elif self.behavior == 5:
 
             if self.y <= 75:
@@ -137,7 +142,7 @@ class Baddie(pygame.sprite.Sprite):
             self.new_y = self.y+self.vel
             if self.shootDelay == 30:
                 self.fire(20,20,(255,255,255))
-            if self.x <= 780:
+            if self.x <= 700:
                 self.speed = 0
 
         elif self.behavior == 6:
@@ -145,14 +150,14 @@ class Baddie(pygame.sprite.Sprite):
             if self.y <= 400:
                 self.y = 400
                 self.vel *=-1
-            elif self.y >= 775:
-                self.y = 775
+            elif self.y >= 695:
+                self.y = 695
                 self.vel *= -1
             else: self.vel +=1
             self.new_y = self.y+self.vel
             if self.shootDelay == 30:
                 self.fire(20,20,(255,255,255))
-            if self.x <= 780:
+            if self.x <= 700:
                 self.speed = 0
 
         else:
@@ -170,32 +175,30 @@ class Baddie(pygame.sprite.Sprite):
             self.new_y = lower_wall - self.height
             self.vel = 0
         self.y = self.new_y
-        self.ifPowerup()
         return self.alive
-
-
-    def ifPowerup(self):
-        if random.randint(0, 100) == 1:
-            self.hasBup = True
-        elif random.randint(0,250) == 1:
-            self.hasMup = True
-        elif random.randint(0, 500) == 1:
-            self.hasLup = True
-        else:
-            self.hasBup=False
-            self.hasMup = False
-            self.hasLup = False
-
-
+    
+    def hasTurrets(self, turrets):
+        if turrets  <= 0:
+            return True
+    
     def draw(self, surface):
 
         if self.hit == True:
             rect = pygame.Rect( self.x, self.y, self.width, self.height )
-            pygame.draw.rect(surface, (255,255,255), rect)
+            pygame.draw.rect(surface, (155,55,55), rect)
             self.hit = False
+        elif self.fakeHit == True:
+            rect = pygame.Rect( self.x, self.y, self.width, self.height )
+            pygame.draw.rect(surface, (55,20,20), rect)
+            self.fakeHit = False
         else:
             rect = pygame.Rect( self.x, self.y, self.width, self.height )
             pygame.draw.rect(surface, self.color, rect)
 
+        return
+
+    def drawHealth(self,surface):
+        rect = pygame.Rect( 100, 45, 8*self.hit_points, 20 )
+        pygame.draw.rect(surface, (155,55,55), rect)
         return
         
