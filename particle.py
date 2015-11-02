@@ -5,7 +5,7 @@ import CONFIG
 
 class Fragment(pygame.sprite.Sprite):
         """a fragment of an exploding Bird"""
-        gravity = True # fragments fall down ?
+        gravity = False # fragments fall down ?
         def __init__(self, pos, color):
             pygame.sprite.Sprite.__init__(self, self.groups)
             self.pos = [0.0,0.0]

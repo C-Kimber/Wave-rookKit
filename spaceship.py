@@ -1,5 +1,6 @@
 import pygame
 from bullet import *
+import math
 from particle import Blast
 from particle import Fragment
 
@@ -104,9 +105,13 @@ class Spaceship():
     def getDimensions(self):
         return self.x,self.y,self.width,self.height
 
-    def seekingFire(self,start_pos, target_pos, speed ):
+    def angleFire(self,width,height,color,angle):
+        return AngledBullet(width,height,(self.x + self.width) , (self.y + (self.height /2) - (height/2)),color,angle)
+
+
+    def seekingFire(self,width,height,color,xoff=0,yoff=0,):
         if self.alive == True:
-            return HomingBullet(start_pos,target_pos,speed)
+            return HomingBullet(width,height,(self.x + self.width + xoff) , ((self.y + (self.height /2) - (height/2)) + yoff),color)
 
     def fire(self,width,height,color,direction,xoff=0,yoff=0,):
         if self.alive == True:

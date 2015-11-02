@@ -1,8 +1,6 @@
 import pygame
 import random
-from bullet import BadBullet
-from bullet import BadMissile
-from bullet import BadLaser
+from bullet import *
 from powerups import *
 from particle import Blast
 
@@ -46,13 +44,16 @@ class Boss(pygame.sprite.Sprite):
 
     def bossFire(self, width, height, color):
         if self.alive== True:
-            return BadBullet(width,height,self.x  , ((self.y + self.height)/2),color)
+            return BadBullet(width,height,self.x-self.width  , ((self.y + self.height)/2),color)
 
 
 
     def explode(self, poss, color,):
         #return Blast(self.x,self.y,width, height, color, speed, direction)
         return Fragment(poss,color)
+    def angleFire(self,width,height,color,angle):
+        return AngledBullet(width,height,(self.x ) , (self.y + (self.height /2) - (height/2)),color,angle)
+
     def getDimensions(self):
         return self.x,self.y,self.width,self.height
 

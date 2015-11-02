@@ -1,7 +1,6 @@
 import pygame
 import random
-from bullet import BadBullet
-from bullet import BadMissile
+from bullet import *
 from powerups import *
 from particle import *
 
@@ -42,6 +41,11 @@ class Baddie(pygame.sprite.Sprite):
     def getAlive(self):
         return self.alive
 
+
+    def seekingFire(self,width,height,color,xoff=0,yoff=0,):
+        if self.alive == True:
+            return HomingBullet(width,height,(self.x + self.width + xoff) , ((self.y + (self.height /2) - (height/2)) + yoff),color)
+
     def fire(self, width, height, color):
         if self.alive== True:
             return BadBullet(width,height,(self.x - self.width) , (self.y + self.height),color)
@@ -72,6 +76,7 @@ class Baddie(pygame.sprite.Sprite):
 
     def tick(self,back_wall,upper_wall,lower_wall, spaceship_position):
         self.shootDelay += 1
+
 
         if self.hit_points <= 0:
             self.alive = False
@@ -198,4 +203,54 @@ class Baddie(pygame.sprite.Sprite):
             pygame.draw.rect(surface, self.color, rect)
 
         return
+
+
+class Asteroid():
+
+     def __init__(self,width,height,x,y,color, speed, angle):
+         self.width = width
+         self.height = width
+         self.height = height
+         self.x = x
+         self.y = y
+         self.color = color
+         self.speed = speed
+         self.angle = angle
+         self.alive = True
+         self.hit = False
+
+
+
+     def move(self):
+         self.x += math.sin(-self.angle) * self.speed
+         self.y -= math.cos(-self.angle) * self.speed
+
+         if self.width < 35:
+            self.width -= 1
+            self.height -= 1
+         if self.width <= 1:
+             self.setAlive(False)
+
+     def getDimensions(self):
+        return self.x, self.y, self.height, self.width
+
+     def checkBackWall(self,back_wall):
+        if (self.x + self.width)< back_wall:
+            self.setAlive(False)
+
+     def setAlive(self,alive):
+         self.alive = alive
+
+     def draw(self, surface):
+
+        if self.hit == True:
+            rect = pygame.Rect( self.x, self.y, self.width, self.height )
+            pygame.draw.rect(surface, (255,255,255), rect)
+            self.hit = False
+        else:
+            rect = pygame.Rect( self.x, self.y, self.width, self.height )
+            pygame.draw.rect(surface, self.color, rect)
+
+        return
+
         

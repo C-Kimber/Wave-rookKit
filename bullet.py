@@ -2,8 +2,167 @@ import pygame
 from pygame import *
 from random import *
 from math import *
+import math
 from particle import *
+from particle import Fragment
 import random
+
+
+"""class AngledBullet():
+
+    def __init__(self,width,height,x,y,color, angle):
+        self.width  = width
+        self.height = height
+        self.x      = x
+        self.y      = y
+        self.speed  = 14
+        self.color  = color
+        self.alive  = True
+        self.hit    = False
+        self.angle = angle
+        return
+
+    def checkHit(self,x,y,w,h):
+        if self.hitRectangle(x, y, w, h):
+            self.setAlive(False)
+            self.hit = True
+
+    def checkBackWall(self,back_wall):
+        if (self.x + self.width) > back_wall:
+            self.setAlive(False)
+        return
+    def checkWall(self):
+        if (self.x + self.width) < 0 \
+        or self.x > 1200\
+        or self.y > 800\
+        or self.y < 0:
+             self.setAlive(False)
+
+    def setAngle(self, angle):
+        self.angle = angle
+
+    def modularAngle(self,angle):
+        self.angle += angle
+
+    def update(self):
+        self.x += math.sin(-self.angle) * self.speed
+        self.y -= math.cos(-self.angle) * self.speed
+
+        return
+
+    def setAlive(self,alive):
+        self.alive = alive
+        return
+
+    def getHit(self):
+        return self.hit
+
+    def hitRectangle(self, x, y, w, h):
+        if( ((self.x + self.width) >= x) and
+            (self.x <= x + w) ):
+            if( ((self.y + self.height) >= y) and
+                (self.y <= y + h)) :
+                return True
+        return False
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
+    def draw(self, surface):
+        rect = pygame.Rect( self.x, self.y, self.width, self.height )
+        pygame.draw.rect(surface, self.color, rect)
+        return
+    """
+class AngledBullet():
+
+    def __init__(self,width,height,x,y,color, angle):
+        self.width  = width
+        self.height = height
+        self.x      = x
+        self.y      = y
+        self.speed  = 5
+        self.color  = color
+        self.alive  = True
+        self.hit    = False
+        self.angle = angle
+        return
+
+    def checkHit(self,x,y,w,h):
+        if self.hitRectangle(x, y, w, h):
+            self.setAlive(False)
+            self.hit = True
+
+    def checkBackWall(self,back_wall):
+        if (self.x + self.width) > back_wall:
+            self.setAlive(False)
+        return
+    def checkWall(self):
+        if (self.x + self.width) < 0 \
+        or self.x > 1200\
+        or self.y > 800\
+        or self.y < 0:
+             self.setAlive(False)
+
+    def setAngle(self, angle):
+        self.angle = angle
+
+    def modularAngle(self,angle):
+        self.angle += angle
+
+    def update(self,x,y):
+        print self.angle
+        if y > self.y:
+            self.angle = self.Angled2(x,y)
+        else:
+            self.angle = self.Angled1(x,y)
+
+
+        self.y -= math.cos(self.angle) * (self.speed)
+        if self.x > x:
+           self.x += math.sin(self.angle) * (self.speed)
+        else:
+            self.x -= self.speed
+
+
+        return
+
+    def Angled1(self,x,y):
+        dx = x - self.x
+        dy = y - self.y
+        angle = math.atan2(dy,dx) * math.pi #/ 180
+        return angle
+    def Angled2(self,x,y):
+        dx = self.x - x
+        dy = self.y - y
+        angle = math.atan2(dy,dx) * math.pi #/ 180
+        return angle
+
+
+    def setAlive(self,alive):
+        self.alive = alive
+        return
+
+    def getHit(self):
+        return self.hit
+
+    def hitRectangle(self, x, y, w, h):
+        if( ((self.x + self.width) >= x) and
+            (self.x <= x + w) ):
+            if( ((self.y + self.height) >= y) and
+                (self.y <= y + h)) :
+                return True
+        return False
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
+    def draw(self, surface):
+        rect = pygame.Rect( self.x, self.y, self.width, self.height )
+        pygame.draw.rect(surface, self.color, rect)
+        return
+
 
 class Bullet():
 
@@ -12,7 +171,7 @@ class Bullet():
         self.height = height
         self.x      = x
         self.y      = y
-        self.speed  = 14
+        self.speed  = 15
         self.color  = color
         self.alive  = True
         self.hit    = False
@@ -24,9 +183,7 @@ class Bullet():
             self.setAlive(False)
             self.hit = True
 
-    def checkBackWall(self,back_wall):
-        if (self.x + self.width) > back_wall:
-            self.setAlive(False)
+
         return
 
     def moveBullet(self):
@@ -55,6 +212,9 @@ class Bullet():
                 (self.y <= y + h)) :
                 return True
         return False
+    def checkBackWall(self,back_wall):
+        if (self.x + self.width) > back_wall:
+            self.setAlive(False)
 
     def explode(self, poss,color):
         #return  Blast(self.x,self.y,width, height, color, speed, direction)
@@ -476,19 +636,83 @@ class BadLaser():
        # pygame.draw.rect(surface, self.color, rect)
         #return
 
-class HomingBullet(object):
+"""class HomingBullet(object):
+    def get_angle(self,origin, destination):
+
+
+        x_dist = destination[0] - origin[0]
+        y_dist = destination[1] - origin[1]
+        return atan2(-y_dist, x_dist) % (2 * pi)
+
     def __init__(self, pos, target_pos, speed=2.5):
         self.pos = pos
-        self.angle = CONFIG.get_angle(self.pos, target_pos)
+        self.angle = self.get_angle((self.pos), (target_pos))
         self.speed = speed
         self.rect = pygame.Rect(0, 0, 2, 2)
         self.rect.center = pos
+        self.alive = True
 
     def update(self, target_pos):
-        self.angle = CONFIG.get_angle(self.pos, target_pos)
+        self.angle = self.get_angle(self.pos, target_pos)
         self.pos = CONFIG.project(self.pos, self.angle, self.speed)
-        self.rect.center = self.pos
+        self.rect.center = 200,200
 
     def draw(self, surface):
-        pygame.draw.rect(surface, pygame.Color("white"), self.rect)
+        pygame.draw.rect(surface, pygame.Color("white"), self.rect)"""
+
+class HomingBullet():
+
+    def __init__(self,width,height,x,y,color):
+        self.width  = width
+        self.height = height
+        self.x      = x
+        self.y      = y
+        self.speed  = 14
+        self.color  = color
+        self.alive  = True
+        self.hit    = False
+
+        return
+
+    def checkHit(self,x,y,w,h):
+        if self.hitRectangle(x, y, w, h):
+            self.setAlive(False)
+            self.hit = True
+
+    def checkBackWall(self,back_wall):
+        if (self.x + self.width) > back_wall:
+            self.setAlive(False)
+        return
+
+    def update(self,target_y):
+        if self.y <= target_y:
+            self.y += 5
+        elif self.y >= target_y:
+            self.y -= 5
+        self.x -= self.speed        #always move it along the x-axis
+        return
+
+    def setAlive(self,alive):
+        self.alive = alive
+        return
+
+    def getHit(self):
+        return self.hit
+
+    def hitRectangle(self, x, y, w, h):
+        if( ((self.x + self.width) >= x) and
+            (self.x <= x + w) ):
+            if( ((self.y + self.height) >= y) and
+                (self.y <= y + h)) :
+                return True
+        return False
+
+    def explode(self, poss,color):
+        #return  Blast(self.x,self.y,width, height, color, speed, direction)
+        return Fragment(poss,color)
+
+    def draw(self, surface):
+        rect = pygame.Rect( self.x, self.y, self.width, self.height )
+        pygame.draw.rect(surface, self.color, rect)
+        return
 

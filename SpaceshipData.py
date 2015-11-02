@@ -2,7 +2,7 @@ import pygame
 import random
 import CONFIG
 from spaceship import Spaceship
-from baddie import Baddie
+from baddie import *
 from boss import Boss
 from particle import *
 
@@ -14,9 +14,6 @@ BRED = (255,51,51)
 ORANGE = (255,128,0)
 DORANGE = (204,102,0)
 YELLOW = (255,255,0)
-
-
-
 
 class SpaceshipData:
 
@@ -47,7 +44,7 @@ class SpaceshipData:
 
 
         self.bullets = []
-        self.bullet_width = 5
+        self.bullet_width = 15
         self.bullet_height = 5
         self.bullet_color = (255,255,255)
 
@@ -55,6 +52,11 @@ class SpaceshipData:
         self.hbullet_width = 5
         self.hbullet_height = 5
         self.hbullet_color = (255,255,255)
+
+        self.abullets = []
+        self.abullet_width = 20
+        self.abullet_height = 20
+        self.abullet_color = (255,255,255)
 
         self.bombs = 3
         self.bomb = False
@@ -85,8 +87,8 @@ class SpaceshipData:
 
         self.missiles = []
         self.misslen = 0
-        self.missile_width = 15
-        self.missile_height = 5
+        self.missile_width = 30
+        self.missile_height = 10
         self.missile_color = (55,144,144)
 
         self.badBullets = []
@@ -104,6 +106,12 @@ class SpaceshipData:
         self.baddie_height = 40
         self.baddie_color = (0,155,0)
         self.baddie_id = 0
+
+        self.asteroids = []
+        self.asteroid_width = random.randint(20, 60)
+        self.asteroid_height = self.asteroid_width
+        self.asteroid_color=(55,55,0)
+
 
         self.boss = []
         self.boss1_width = 400
@@ -130,9 +138,27 @@ class SpaceshipData:
 
         self.score = 0
 
-        self.wave1 = False
+        self.wave1 = True
+        self.wave2 = False
+        self.wave3 = False
+        self.wave4 = False
+        self.wave5 = False
+        self.wave6 = False
+        self.wave7 = False
+        self.wave8 = False
+        self.wave9 = False
+        self.wave10 = False
         self.w1 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
         self.w2 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w3 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w4 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w5 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w6 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w7 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w8 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w9 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        self.w10 = [1,1,2,2,1,2,1,1,'p','p','p',4,'p','p',99,0]
+        
 
         self.endGame = False
         self.winGame = False
@@ -145,6 +171,9 @@ class SpaceshipData:
         self.badLaserDelay = 0
 
         self.a = -1
+
+        self.ang = 9
+        self.angby = .1
 
 
 
@@ -176,7 +205,6 @@ class SpaceshipData:
 
     def evolve(self, keys, newkeys, buttons, newbuttons, mouse_position):
 
-        print len(self.hbullets)
         if 1 in newbuttons:
             self.buttonon = True
         else:
@@ -269,13 +297,16 @@ class SpaceshipData:
                     self.shootBullet(self.spaceship)
                     self.shootMissile(self.spaceship)
                     self.shootLaser(self.spaceship)
-            if 2 in newbuttons:
-                self.hbullets.append(self.spaceship.seekingFire((400, 400), (200,200)))
+                    self.shootAngledBullet(self.spaceship)
+
 
             if pygame.K_SPACE in keys :
                 self.shootBullet(self.spaceship)
                 self.shootMissile(self.spaceship)
                 self.shootLaser(self.spaceship)
+                #self.shootAngledBullet(self.spaceship)
+
+
 
             if self.laserDelay >= 60:
                 self.laserDelay = 0
@@ -286,6 +317,16 @@ class SpaceshipData:
                 self.badLaserDelay = -30
             if self.badLaserDelay <= -30:
                 self.badLaserDelay = -30
+
+            """if self.ang > 3:
+                self.angby *= -1
+            if self.ang < .2:
+                self.angby *= -1"""
+
+            """if self.ang > 2.8:
+                self.ang = .5
+            if self.ang < .5:
+                self.ang = 2.8"""
 
             self.delay += 1
             if self.delay >= 120:
@@ -307,20 +348,32 @@ class SpaceshipData:
             self.fragmentgroup.update(seconds)
 
             if self.spaceship.health > 0:
-
-
+                
                 #wave fucntionality
-
-
-                if self.wave1 == True:
-
+                """if self.wave1 == True or self.wave2 == True or self.wave3 == True or self.wave4 == True or self.wave5 == True\
+                 or self.wave6 == True or self.wave7 == True or self.wave8 == True or self.wave9 == True or self.wave10 == True:
                     if self.delay == 60:
-
-
                         self.a+=1
-                        i = self.w1[self.a]
-
-
+                        if self.wave1 == True:
+                            i = self.w1[self.a]
+                        elif self.wave2 == True:
+                            i = self.w2[self.a]
+                        elif self.wave3 == True:
+                            i = self.w3[self.a]
+                        elif self.wave4 == True:
+                            i = self.w4[self.a]
+                        elif self.wave5 == True:
+                            i = self.w5[self.a]
+                        elif self.wave6 == True:
+                            i = self.w6[self.a]
+                        elif self.wave7 == True:
+                            i = self.w7[self.a]
+                        elif self.wave8 == True:
+                            i = self.w8[self.a]
+                        elif self.wave9 == True:
+                            i = self.w9[self.a]
+                        elif self.wave10 == True:
+                            i = self.w10[self.a]
 
                         if i == 1:
 
@@ -344,12 +397,54 @@ class SpaceshipData:
 
                         elif i == 'p':
                             self.doNothing()
+                            
+                        elif i == 'a':
+                            for _ in range(10):
+                                if random.randint(1, self.frame_rate/2) == 1:
+                                    self.addAsteroid()
 
-                        elif i == 0:
+                        elif i == '1end':
                             self.wave1 = False
+                        elif i == '2end':
+                            self.wave2 = False
+                        elif i == '3end':
+                            self.wave3 = False
+                        elif i == '4end':
+                            self.wave4 = False
+                        elif i == '5end':
+                            self.wave5 = False
+                        elif i == '6end':
+                            self.wave6 = False
+                        elif i == '7end':
+                            self.wave7 = False
+                        elif i == '8end':
+                            self.wave8 = False
+                        elif i == '9end':
+                            self.wave9 = False
+                        elif i == '10end':
+                            self.wave10 = False
+                            
+                        elif i == '2start':
+                            self.wave2 = True
+                        elif i == '3start':
+                            self.wave3 = True
+                        elif i == '4start':
+                            self.wave4 = True
+                        elif i == '5start':
+                            self.wave5 = True
+                        elif i == '6start':
+                            self.wave6 = True
+                        elif i == '7start':
+                            self.wave7 = True
+                        elif i == '8start':
+                            self.wave8 = True
+                        elif i == '9start':
+                            self.wave9 = True
+                        elif i == '10start':
+                            self.wave10 = True
 
                         elif i == 99:
-                                self.endGame = True
+                                self.endGame = True"""
 
 
 
@@ -362,9 +457,20 @@ class SpaceshipData:
             for bullet in self.bullets:
                 bullet.moveBullet()
                 bullet.checkBackWall(self.width)
+                if not bullet.alive:
+                    self.bullets.remove(bullet)
+                    continue
 
             for h in self.hbullets:
-                h.update(200,200)
+                h.update(self.spaceship_y)
+
+            for a in self.abullets:
+                a.update(self.spaceship.x,self.spaceship.y)
+                a.checkWall()
+                if not a.alive:
+                    self.abullets.remove(a)
+                    continue
+                #a.setAngle(self.ang)
 
             for b in self.boss:
                 b.tick(0,0,self.height, 400,self.turrets)
@@ -411,6 +517,10 @@ class SpaceshipData:
                 bbullet.moveBullet()
                 bbullet.checkBackWall(0)
 
+            for a in self.asteroids:
+                a.move()
+                a.checkBackWall(0)
+
             for laz in self.badLasers:
                 laz.moveLaser()
                 laz.checkBackWall(0)
@@ -430,11 +540,42 @@ class SpaceshipData:
 
 
             self.spaceship_y = self.spaceship.spaceshipPosition()[1]
+            for aster in self.asteroids:
+                if not aster.alive:
+                    continue
+                if aster.hit != False:
+                    aster.color = (255,55,55)
+                x,y,w,h = aster.getDimensions()
+                if w >= 35:
+                    self.spaceship.checkHit(x,y,w,h)
+
+                if self.spaceship.getHit():
+                    aster.alive = False
+                    self.spaceship.health -= 1
+                    self.invinsiblen = 30
+                    self.spaceship.invinsible = True
+                    self.spaceship.hit = False
+                for bullet in self.bullets:
+                    if not bullet.alive:
+                        continue
+                    x,y,w,h = aster.getDimensions()
+                    bullet.checkHit(x,y,w,h)
+                    if bullet.hit == True:
+                        bullet.hit = False
+                        aster.alive = False
+                        if w < 35:
+                           aster.alive = False
+                        else:
+                            self.addSAsteroid(w/2,h/2,x+5,y-h/2,random.uniform(1,1.5))
+                            self.addSAsteroid(w/2,h/2,x+5,y+h/2,random.uniform(1.9,2))
+
+
+
             for baddie in self.baddies:
 
 
                 baddie.tick(0,0,self.height, self.height/2)
-
+                #self.homingBullet(baddie)
                 if self.bomb == True:
                    self.bomb = False
                    self.boom = True
@@ -459,6 +600,7 @@ class SpaceshipData:
                 if baddie.behavior == 3 or baddie.behavior == 1:
                     if self.shootDelay == 15:
                         self.badBullets.append(baddie.fire(self.badBullet_width,self.badBullet_height,self.badBullet_color))
+
                 if baddie.behavior == 5 or baddie.behavior == 6:
                     if self.shootDelay == 6 or self.shootDelay == 12 or self.shootDelay == 18 or self.shootDelay == 24 or  self.shootDelay == 30:
                         self.badBullets.append(baddie.fire(self.badBullet_width,self.badBullet_height,self.badBullet_color))
@@ -476,12 +618,15 @@ class SpaceshipData:
 
                 self.badLaserDelay += 1
 
+
                 if self.badLaserDelay >20:
                     if self.turrets <= 0:
                         self.badLasers.append(b.beam(self.badLaser_width, self.badLaser_height, self.badLaser_color,0,-b.height/2-50+(self.badLaserDelay*4)))
                         self.badLasers.append(b.beam(self.badLaser_width, self.badLaser_height, self.badLaser_color,0,b.height/2+50-(self.badLaserDelay*4)))
 
                     self.badLasers.append(b.beam(self.badLaser_width, self.badLaser_height, self.badLaser_color,0,-10))
+                if self.turrets <= 0:
+                    self.shootAngledBullet(b)
 
                 for bullet in self.bullets:
                     if not bullet.alive:
@@ -547,10 +692,20 @@ class SpaceshipData:
                     if blaser.hit == True:
                         blaser.hit = False
                         self.spaceship.health -= .02
+                for bullet in self.abullets:
+                    if not bullet.alive:
+                        continue
+                    x,y,w,h = self.spaceship.getDimensions()
+                    bullet.checkHit(x,y,w,h)
+                    if bullet.hit == True:
+                        bullet.hit = False
+                        #self.spaceship.health -= .5
 
             if self.bomb == True:
                    self.bomb = False
                    self.boom = True
+
+
             for l in self.lasers:
                 if not l.alive:
                     continue
@@ -558,6 +713,8 @@ class SpaceshipData:
                 for baddie in self.baddies:
                     if not baddie.alive:
                         continue
+
+
                     x,y,w,h = baddie.getDimensions()
                     l.checkHit(x,y,w,h)
                     if l.getHit():
@@ -601,6 +758,7 @@ class SpaceshipData:
             live_hBullets = []
             live_lasers = []
             live_particles = []
+            live_asteroids = []
 
             for bullet in self.bullets:
                 if bullet.alive:
@@ -617,6 +775,9 @@ class SpaceshipData:
             for missile in self.missiles:
                 if missile.alive:
                     live_missiles.append(missile)
+            for a in self.asteroids:
+                if a.alive:
+                    live_asteroids.append(a)
 
             for m in self.mups:
                 if m.alive:
@@ -635,9 +796,13 @@ class SpaceshipData:
             for h in self.hbullets:
                 if h.alive:
                     live_hBullets.append(h)
+            for a in self.abullets:
+                if a.alive:
+                    live_hBullets.append(a)
 
             self.mups = live_mups
             self.bups = live_bups
+            self.asteroids = live_asteroids
             self.badBullets = live_badBullets
             self.badLasers = live_badLasers
             self.bullets = live_bullets
@@ -670,25 +835,21 @@ class SpaceshipData:
         elif togglenumber ==1:
             self.addStar(2,2,self.width,random.randint(50,self.height),(255,255,255),10,'normal')
 
-    def addRandBaddie(self):
-
-        new_baddie = Baddie(self.baddie_id, self.baddie_width, self.baddie_height, self.width, random.randint(0,(self.height-self.baddie_height)), self.baddie_color, 3, 0)
-        self.baddies.append( new_baddie )
-
-
+    def addAsteroid(self):
+        size = random.randint(40,90)
+        new_baddie = Asteroid(size, size, self.width, random.randint(0,(self.height-self.baddie_height)), self.asteroid_color, 5, random.uniform(1,2))
+        self.asteroids.append( new_baddie )
         return
+    def addSAsteroid(self,width,height,x,y,angle):
 
-    def addRandStrongBaddie(self):
-        new_baddie = Baddie(self.baddie_id,self.baddie_width, self.baddie_height, self.width, random.randint(0, (self.height-self.baddie_height)), (155,0,0), 2, 1)
-        new_baddie.setHitPoints(2)
-        self.baddies.append(new_baddie)
-
+        new_baddie = Asteroid(width, height, x, y, self.asteroid_color, 5, angle)
+        self.asteroids.append( new_baddie )
         return
 
     def addBaddie(self, height):
         new_baddie = Baddie(self.baddie_id, self.baddie_width, self.baddie_height, self.width, height, self.baddie_color, 3, 0 )
         self.baddies.append( new_baddie )
-        new_baddie.id
+
         return
 
     def addStrongBaddie(self, height):
@@ -729,7 +890,8 @@ class SpaceshipData:
         return
 
     def shootBullet(self, who):
-        if self.shootDelay == 10 or self.shootDelay == 20 or self.shootDelay == 30:
+        #self.bullets.append(who.angleFire(0,))
+        if self.shootDelay == 6 or self.shootDelay == 12 or self.shootDelay == 18 or self.shootDelay == 24 or self.shootDelay == 30:
             if who.bullet_up ==1:
                 self.bullets.append(who.fire(self.bullet_width,self.bullet_height,self.bullet_color,'normal'))
             if who.bullet_up == 2:
@@ -770,7 +932,6 @@ class SpaceshipData:
                 self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0,10))
                 self.missiles.append(self.spaceship.launch(self.missile_width, self.missile_height, self.missile_color,0, 20,2))
 
-
     def shootLaser(self,who):
 
         if who.laser_up == 1:
@@ -783,12 +944,18 @@ class SpaceshipData:
                     self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color,0,-10))
                     self.lasers.append(who.beam(self.laser_width, self.laser_height, self.laser_color,0,10))
 
+    def   shootAngledBullet(self,who):
+        self.abullets.append(who.angleFire(self.abullet_width,self.abullet_height,self.abullet_color,self.ang))
+        #self.ang += self.angby
+
+
     def button(self,x,y,w,h):
         mx, my =pygame.mouse.get_pos()
         if x <= mx <= x+w and y <= my <= y+h:
             if self.buttonon == True:
 
                 return True
+
     def hover(self,x,y,w,h):
         mx, my =pygame.mouse.get_pos()
         if x <= mx <= x+w and y <= my <= y+h:
@@ -906,6 +1073,7 @@ class SpaceshipData:
         del self.badBullets[:]
         del self.badLasers[:]
         del self.boss[:]
+        del self.abullets[:]
         self.wave1 = True
         self.endGame = False
         self.winGame = False
@@ -920,8 +1088,6 @@ class SpaceshipData:
         self.spaceship.bullet_up = 1
         self.spaceship.missile_up = 0
         self.spaceship.missile_up = 0
-
-
 
     def draw(self,surface):
 
@@ -980,10 +1146,18 @@ class SpaceshipData:
             a.draw(surface)
         for baddie in self.baddies:
             baddie.draw(surface)
+            # surf =  pygame.Surface((baddie.width, baddie.width))
+            # rotatedSurf =  pygame.transform.rotate(surf, )
+            # rotRect = rotatedSurf.get_rect()
+            # surface.blit(rotatedSurf, rotRect)
         for l in self.particles:
             l.draw(surface)
         for h in self.hbullets:
             h.draw(surface)
+        for h in self.abullets:
+            h.draw(surface)
+        for a in self.asteroids:
+            a.draw(surface)
         self.fragmentgroup.draw(surface)
 
 
